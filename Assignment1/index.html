@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            table, th, td {
+                border-style: solid;
+                border-width: 2 px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="vue-app" style="margin:auto; width:50%">
+            <h1 style="margin:auto; width:50%">O'Neill's Weather App</h1>
+            <div style="margin:auto; width:50%">Enter city to find weather: <input v-model="city"> <button v-on:click="getWeatherData">Find Weather</button></div>
+            <div style="margin-top: 10px; margin: auto;margin-bottom: 10px;width: 50%;border-top: solid;border-bottom: solid;border-width: 2px;border-color: lightslategray;">
+                <div style="margin-top:2px;margin-bottom: 2px;">{{Pack}}</div>
+                <div v-if="Rainy" style="margin-top:2px;margin-bottom: 2px;">You should pack an umbrella!</div>
+                <div v-else style="margin-top:2px;margin-bottom: 2px;">No need for an umbrella!</div>
+                <div v-if="Mask" style="margin-top:2px;margin-bottom: 2px;">And wear a mask!</div>
+            </div>
+            <table class="table" style="margin:auto">
+                <thead>
+                  <tr>
+                    <th scope="col">5-Day</th>
+                    <th scope="col">Temperature</th>
+                    <th scope="col">Wind Speed</th>
+                    <th scope="col">Rainfall</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="weather in weatherInfo">
+                    <td>{{weather.dayNumber}}</td>
+                    <td>{{weather.temp}} C</td>
+                    <td>{{weather.wind}} km/h</td>
+                    <td>{{weather.rain}} mm</td>
+                  </tr>
+                </tbody>
+              </table>
+        </div>
+    </body>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script >
+        var app = new Vue({
+            el: '#vue-app',
+            data: {
+                Day: [],
+                weatherInfo: [],
+                city: "",
+                Rainy: false,
+                Mask: false,
+                Pack: "",
+            },
+            methods: {
+                getWeatherData: function () {
+                    fetch(`http://localhost:3000/${this.city}`).then(
+                        function(response) {
+                            response.json().then(function(data) {
+                                console.log(data)
+                                Vue.set(app, "weatherInfo", data.weatherData)
+                                Vue.set(app, "Rainy", data.raining)
+                                Vue.set(app, "Mask", data.polluting)
+                                Vue.set(app, "Pack", data.weatherData[0].pack)
+                            });
+                        }
+                    )
+                }
+            }
+        })
+    </script>
+</html>
+

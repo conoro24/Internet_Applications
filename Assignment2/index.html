@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <title>Assignment 2 - Conor O'Neill</title>
+    </head>
+    <body>
+        <div id="app" style="margin:auto; width:50%">
+            <h1>O'Neill's Movies Application</h1>
+            <div>
+                <button v-on:click="handleCreateTable">Create Table</button>
+            </div>
+            <div v-if="tableCreated">
+                <p>{{"Table Created!"}}</p>
+            </div>
+            <div v-if="tableNotCreated">
+                <p>{{"Table Not Created..."}}</p>
+            </div>
+            <br/>
+            <div>
+
+                <label>Movie Title
+                    <input type="text" v-model="queryTitle">
+                </label>
+                <br/>
+                <label>Movie Year
+                    <input type="text" v-model="queryYear">
+                </label>
+                <br/>
+                <label>Rating
+                    <input type="text" v-model="queryRating">
+                </label>
+                <br/>
+                <button v-on:click="handleQuery">Submit</button>
+            </div>
+            <br/>
+            <div v-if="!queryError">
+                <table border=1>
+                    <tr>
+                        <th>
+                            Movie Name
+                        </th>
+                        <th>
+                            Movie Year
+                        </th>
+                        <th>
+                            Movie Rating
+                        </th>
+                    </tr>
+                    <tr v-for="movie in movies" :key="movie.title">
+                        <td>
+                            {{movie.title}}
+                        </td>
+                        <td>
+                            {{movie.year}}
+                        </td>
+                        <td>
+                            {{movie.rating}}
+                        </td>
+                </table>
+                <br/>
+            </div>
+            <div v-if="queryError">
+                <p>{{"No Movies found for your search"}}</p>
+            </div>
+            <div>
+                <button v-on:click="handleDestroyTable">Destroy Table</button>
+            </div>
+            <div v-if="tableDestroyed">
+                <p>{{"Table Destroyed!"}}</p>
+            </div>
+            <div v-if="tableNotDestroyed">
+                <p>{{"Table Not Destroyed..."}}</p>
+            </div>
+            <br/>
+        </div>
+    </body>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                movies: [],
+                tableNotCreated: false,
+                tableCreated: false,
+                queryYear: null,
+                queryTitle: null,
+                queryRating: null,
+                queryError: false,
+                hasQueryResponse: false,
+                tableNotDestroyed: false,
+                tableDestroyed: false
+            },
+            methods: {
+                resetMessages(){
+                    this.hasQueryResponse = false
+                    this.queryError = false
+                    this.tableCreated = false
+                    this.tableNotCreated = false
+                    this.tableDestroyed = false
+                    this.tableNotDestroyed = false
+                },
+                async handleCreateTable(){
+                    this.resetMessages()
+
+                    const response = await fetch("http:localhost:8000/api/create-database",{method:"POST", body:""})
+                    if(response.status == 200){
+                        this.tableCreated = true
+                    }else{
+                        const body = await response.json();
+                        this.tableCreatedError = true
+                    }
+                },
+                async handleDestroyTable() {
+                    this.resetMessages()
+
+                    const response = await fetch("http:localhost:8000/api/delete-database",{method:"POST", body:""}) 
+                    if(response.status == 200){
+                        this.tableDestroyed = true
+                    }else{
+                        const body = await response.json();
+                        this.tableDestroyedError = true
+                    }
+                },
+                async handleQuery() {
+                    this.resetMessages()
+
+                    const response = await fetch(`http:localhost:8000/api/get-movies/${this.queryTitle}/${this.queryYear}/${this.queryRating}`)
+
+                    if(response.status == 200) {
+                        const body = await response.json();
+                        console.log(body)
+                        Vue.set(app, "movies",body)
+                        console.log(this.movies)
+                        if(this.movies.length === 0){
+                            this.queryError = true
+                        }else{
+                            this.hasQueryResponse = true
+                        }
+                    }else{
+                            this.queryError = true
+                            console.log(response)
+                    }
+                }
+            }
+        })
+    </script>
+</html>
